@@ -245,6 +245,7 @@ st.markdown(f"""
         border-radius: 5px;
         padding: 0.5rem 1rem;
         font-weight: bold;
+        width: 100%;
     }}
     .stButton>button:hover {{
         background-color: {DARK_RED};
@@ -298,20 +299,106 @@ st.markdown(f"""
         background-color: {BLACK};
         color: {YELLOW};
     }}
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {{
+        /* Header adjustments */
+        .header-container {{
+            flex-direction: column;
+            text-align: center;
+            gap: 15px;
+        }}
+        
+        /* Portfolio summary grid */
+        .portfolio-summary {{
+            grid-template-columns: 1fr !important;
+            gap: 10px;
+        }}
+        
+        /* Chart containers */
+        .element-container {{
+            padding: 10px !important;
+        }}
+        
+        /* Sidebar adjustments */
+        .css-1lcbmhc {{
+            width: 100% !important;
+            max-width: 100% !important;
+        }}
+        
+        /* Input fields */
+        .stTextInput, .stNumberInput {{
+            width: 100% !important;
+        }}
+        
+        /* Tables */
+        .dataframe {{
+            font-size: 12px;
+        }}
+        
+        /* Metrics */
+        .stMetric {{
+            padding: 10px;
+        }}
+        
+        /* Footer */
+        .footer-container {{
+            flex-direction: column;
+            gap: 10px;
+        }}
+    }}
+
+    /* Tablet Responsive Styles */
+    @media (min-width: 769px) and (max-width: 1024px) {{
+        .portfolio-summary {{
+            grid-template-columns: repeat(2, 1fr) !important;
+        }}
+    }}
+
+    /* General Responsive Utilities */
+    .responsive-grid {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }}
+
+    .responsive-flex {{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }}
+
+    .responsive-text {{
+        font-size: clamp(14px, 2vw, 16px);
+    }}
+
+    .responsive-padding {{
+        padding: clamp(10px, 2vw, 20px);
+    }}
+
+    /* Scrollable tables for mobile */
+    .stDataFrame {{
+        overflow-x: auto;
+    }}
+
+    /* Adjust plotly charts for mobile */
+    .js-plotly-plot {{
+        width: 100% !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
 # Header with logo and title
 st.markdown(f"""
-    <div style='background-color: {BLACK}; color: {YELLOW}; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid {RED};'>
-        <div style='display: flex; align-items: center; justify-content: space-between;'>
-            <div>
-                <h1 style='margin: 0; color: {YELLOW};'>Portefeuille Bourse de Casablanca | @risk.maroc </h1>
-                <p style='margin: 0;'>Tableau de bord d'investissement - Bourse de Casablanca</p>
+    <div style='background-color: {BLACK}; color: {YELLOW}; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid {RED};' class='responsive-padding'>
+        <div style='display: flex; align-items: center; justify-content: space-between;' class='header-container responsive-flex'>
+            <div style='flex: 1;'>
+                <h1 style='margin: 0; color: {YELLOW}; font-size: clamp(24px, 4vw, 32px);'>Portefeuille Bourse de Casablanca</h1>
+                <p style='margin: 0; font-size: clamp(14px, 2vw, 16px);'>Tableau de bord d'investissement - Bourse de Casablanca</p>
             </div>
-            <div style='display: flex; align-items: center; gap: 15px;'>
+            <div style='display: flex; align-items: center; gap: 15px;' class='responsive-flex'>
                 <div style='background-color: {RED}; padding: 5px 10px; border-radius: 5px; color: {BLACK}; font-weight: bold;'>
-                    <a href='https://risk.ma/bourse-de-casablanca' target='_blank' style='color: {BLACK}; text-decoration: none;'>www.risk.ma</a>
+                    <a href='https://risk.ma/bourse-de-casablanca' target='_blank' style='color: {BLACK}; text-decoration: none; font-size: clamp(12px, 2vw, 14px);'>www.risk.ma</a>
                 </div>
                 <div style='display: flex; gap: 10px;'>
                     <a href='https://instagram.com/risk.maroc' target='_blank' style='color: {YELLOW}; text-decoration: none;'>
@@ -435,293 +522,284 @@ if 'portfolio_metrics' in st.session_state:
     
     # Portfolio summary cards
     st.markdown(f"""
-        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(255,0,0,0.2);'>
-            <h2 style='color: {YELLOW}; margin-top: 0;'>Résumé du Portefeuille</h2>
-            <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;'>
-                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                    <div style='font-size: 14px; color: {YELLOW};'>Investissement Total</div>
-                    <div style='font-size: 24px; font-weight: bold;'>{metrics['total_investment']:,.2f} MAD</div>
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(255,0,0,0.2);' class='responsive-padding'>
+            <h2 style='color: {YELLOW}; margin-top: 0; font-size: clamp(20px, 3vw, 24px);'>Résumé du Portefeuille</h2>
+            <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;' class='portfolio-summary responsive-grid'>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Investissement Total</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['total_investment']:,.2f} MAD</div>
                 </div>
-                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                    <div style='font-size: 14px; color: {YELLOW};'>Valeur Actuelle</div>
-                    <div style='font-size: 24px; font-weight: bold;'>{metrics['current_value']:,.2f} MAD</div>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Valeur Actuelle</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['current_value']:,.2f} MAD</div>
                 </div>
-                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                    <div style='font-size: 14px; color: {YELLOW};'>Profit & Loss</div>
-                    <div style='font-size: 24px; font-weight: bold; color: {RED};'>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Profit & Loss</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
                         {metrics['pnl']:,.2f} MAD ({metrics['pnl_percentage']:.2f}%)
                     </div>
                 </div>
-                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                    <div style='font-size: 14px; color: {YELLOW};'>Niveau de Risque</div>
-                    <div style='font-size: 24px; font-weight: bold; color: {RED};'>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Niveau de Risque</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
                         {metrics['ratios']['risk_level']}
                     </div>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # Performance section
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
+            <h3 style='color: {YELLOW};'>Performance du Portefeuille</h3>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Performance tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📈 Performance", "📊 Répartition", "📋 Détails", "📌 Recommandations"])
+    # Create performance data
+    performance_data = pd.DataFrame(metrics["stock_performances"])
     
-    with tab1:
-        # Performance chart
-        st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                <h3 style='color: {YELLOW};'>Performance du Portefeuille</h3>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Create performance data
-        performance_data = pd.DataFrame(metrics["stock_performances"])
-        
-        # Portfolio evolution chart (simulated)
-        dates = pd.date_range(start=datetime.now() - timedelta(days=30), end=datetime.now())
-        portfolio_values = np.linspace(
-            metrics['total_investment'], 
-            metrics['current_value'], 
-            len(dates)
-        )
-        
-        fig_evolution = go.Figure()
-        fig_evolution.add_trace(go.Scatter(
-            x=dates,
-            y=portfolio_values,
-            mode='lines',
-            line=dict(color=RED, width=3),
-            name='Valeur du Portefeuille'
-        ))
-        fig_evolution.update_layout(
-            plot_bgcolor=BLACK,
-            paper_bgcolor=BLACK,
-            font=dict(color=YELLOW),
-            xaxis=dict(
-                title=dict(text='Date', font=dict(color=YELLOW)),
-                tickfont=dict(color=YELLOW),
-                gridcolor=RED,
-                linecolor=RED,
-                zerolinecolor=RED
-            ),
-            yaxis=dict(
-                title=dict(text='Valeur (MAD)', font=dict(color=YELLOW)),
-                tickfont=dict(color=YELLOW),
-                gridcolor=RED,
-                linecolor=RED,
-                zerolinecolor=RED
-            ),
-            hovermode="x unified"
-        )
-        st.plotly_chart(fig_evolution, use_container_width=True)
-        
-        # Individual stock performance
-        fig_perf = px.bar(
-            performance_data,
-            x="symbol",
-            y="pnl_percentage",
-            title="Performance par Action",
-            color="pnl_percentage",
-            color_continuous_scale=[RED, YELLOW],
-            labels={"pnl_percentage": "Performance (%)", "symbol": "Action"},
-            text="pnl_percentage"
-        )
-        fig_perf.update_traces(texttemplate='%{text:.2f}%', textposition='outside')
-        fig_perf.update_layout(
-            plot_bgcolor=BLACK,
-            paper_bgcolor=BLACK,
-            font=dict(color=YELLOW),
-            yaxis=dict(showgrid=False),
-            xaxis=dict(title=None)
-        )
-        st.plotly_chart(fig_perf, use_container_width=True)
+    # Portfolio evolution chart (simulated)
+    dates = pd.date_range(start=datetime.now() - timedelta(days=30), end=datetime.now())
+    portfolio_values = np.linspace(
+        metrics['total_investment'], 
+        metrics['current_value'], 
+        len(dates)
+    )
     
-    with tab2:
-        # Sector and asset distribution
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown(f"""
-                <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                    <h3 style='color: {YELLOW};'>Répartition par Secteur</h3>
+    fig_evolution = go.Figure()
+    fig_evolution.add_trace(go.Scatter(
+        x=dates,
+        y=portfolio_values,
+        mode='lines',
+        line=dict(color=RED, width=3),
+        name='Valeur du Portefeuille'
+    ))
+    fig_evolution.update_layout(
+        plot_bgcolor=BLACK,
+        paper_bgcolor=BLACK,
+        font=dict(color=YELLOW),
+        xaxis=dict(
+            title=dict(text='Date', font=dict(color=YELLOW)),
+            tickfont=dict(color=YELLOW),
+            gridcolor=RED,
+            linecolor=RED,
+            zerolinecolor=RED
+        ),
+        yaxis=dict(
+            title=dict(text='Valeur (MAD)', font=dict(color=YELLOW)),
+            tickfont=dict(color=YELLOW),
+            gridcolor=RED,
+            linecolor=RED,
+            zerolinecolor=RED
+        ),
+        hovermode="x unified",
+        height=400,
+        width=None
+    )
+    st.plotly_chart(fig_evolution, use_container_width=True)
+    
+    # Individual stock performance
+    fig_perf = px.bar(
+        performance_data,
+        x="symbol",
+        y="pnl_percentage",
+        title="Performance par Action",
+        color="pnl_percentage",
+        color_continuous_scale=[RED, YELLOW],
+        labels={"pnl_percentage": "Performance (%)", "symbol": "Action"},
+        text="pnl_percentage"
+    )
+    fig_perf.update_traces(texttemplate='%{text:.2f}%', textposition='outside')
+    fig_perf.update_layout(
+        plot_bgcolor=BLACK,
+        paper_bgcolor=BLACK,
+        font=dict(color=YELLOW),
+        yaxis=dict(showgrid=False),
+        xaxis=dict(title=None),
+        height=400,
+        width=None
+    )
+    st.plotly_chart(fig_perf, use_container_width=True)
+
+    # Distribution section
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
+            <h3 style='color: {YELLOW};'>Répartition du Portefeuille</h3>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Sector distribution pie chart
+    sector_data = pd.DataFrame({
+        "sector": list(metrics["sector_distribution"].keys()),
+        "value": list(metrics["sector_distribution"].values())
+    })
+    
+    fig_sector = px.pie(
+        sector_data,
+        values="value",
+        names="sector",
+        hole=0.4,
+        color_discrete_sequence=[RED, YELLOW, DARK_RED, DARK_YELLOW]
+    )
+    fig_sector.update_layout(
+        plot_bgcolor=BLACK,
+        paper_bgcolor=BLACK,
+        font=dict(color=YELLOW),
+        showlegend=True,
+        height=400,
+        width=None
+    )
+    st.plotly_chart(fig_sector, use_container_width=True)
+    
+    # Asset distribution treemap
+    fig_treemap = px.treemap(
+        performance_data,
+        path=['symbol'],
+        values='value',
+        color='pnl_percentage',
+        color_continuous_scale=[RED, YELLOW],
+        hover_data=['pnl_percentage']
+    )
+    fig_treemap.update_layout(
+        plot_bgcolor=BLACK,
+        paper_bgcolor=BLACK,
+        margin=dict(t=0, l=0, r=0, b=0),
+        height=400,
+        width=None
+    )
+    st.plotly_chart(fig_treemap, use_container_width=True)
+
+    # Detailed performance table
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
+            <h3 style='color: {YELLOW};'>Détails des Positions</h3>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    detailed_data = pd.DataFrame(metrics["stock_performances"])
+    detailed_data = detailed_data[[
+        "symbol", "name", "sector", "current_price", 
+        "investment", "value", "pnl", "pnl_percentage", "weight"
+    ]]
+    detailed_data.columns = [
+        "Symbole", "Nom", "Secteur", "Prix Actuel", 
+        "Investissement", "Valeur", "P&L", "Performance %", "Poids %"
+    ]
+    
+    # Format the DataFrame display
+    styled_table = detailed_data.style.format({
+        "Prix Actuel": "{:,.2f} MAD",
+        "Investissement": "{:,.2f} MAD",
+        "Valeur": "{:,.2f} MAD",
+        "P&L": "{:+,.2f} MAD",
+        "Performance %": "{:+.2f}%",
+        "Poids %": "{:.2f}%"
+    }).applymap(
+        lambda x: f"color: {RED}" if isinstance(x, str) and x.startswith('+') 
+        else (f"color: {RED}" if isinstance(x, str) and x.startswith('-') else ""),
+        subset=["P&L", "Performance %"]
+    )
+    
+    st.dataframe(styled_table, use_container_width=True)
+    
+    # Financial ratios
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
+            <h3 style='color: {YELLOW};'>Ratios Financiers</h3>
+            <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;' class='responsive-grid'>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Sharpe Ratio</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['ratios']['sharpe_ratio']:.2f}</div>
                 </div>
-                """, unsafe_allow_html=True)
-            
-            # Sector distribution pie chart
-            sector_data = pd.DataFrame({
-                "sector": list(metrics["sector_distribution"].keys()),
-                "value": list(metrics["sector_distribution"].values())
-            })
-            
-            fig_sector = px.pie(
-                sector_data,
-                values="value",
-                names="sector",
-                hole=0.4,
-                color_discrete_sequence=[RED, YELLOW, DARK_RED, DARK_YELLOW]
-            )
-            fig_sector.update_layout(
-                plot_bgcolor=BLACK,
-                paper_bgcolor=BLACK,
-                font=dict(color=YELLOW),
-                showlegend=True
-            )
-            st.plotly_chart(fig_sector, use_container_width=True)
-        
-        with col2:
-            st.markdown(f"""
-                <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                    <h3 style='color: {YELLOW};'>Répartition par Action</h3>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Beta</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['ratios']['beta']:.2f}</div>
                 </div>
-                """, unsafe_allow_html=True)
-            
-            # Asset distribution treemap
-            fig_treemap = px.treemap(
-                performance_data,
-                path=['symbol'],
-                values='value',
-                color='pnl_percentage',
-                color_continuous_scale=[RED, YELLOW],
-                hover_data=['pnl_percentage']
-            )
-            fig_treemap.update_layout(
-                plot_bgcolor=BLACK,
-                paper_bgcolor=BLACK,
-                margin=dict(t=0, l=0, r=0, b=0)
-            )
-            st.plotly_chart(fig_treemap, use_container_width=True)
-    
-    with tab3:
-        # Detailed performance table
-        st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                <h3 style='color: {YELLOW};'>Détails des Positions</h3>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        detailed_data = pd.DataFrame(metrics["stock_performances"])
-        detailed_data = detailed_data[[
-            "symbol", "name", "sector", "current_price", 
-            "investment", "value", "pnl", "pnl_percentage", "weight"
-        ]]
-        detailed_data.columns = [
-            "Symbole", "Nom", "Secteur", "Prix Actuel", 
-            "Investissement", "Valeur", "P&L", "Performance %", "Poids %"
-        ]
-        
-        # Format the DataFrame display
-        styled_table = detailed_data.style.format({
-            "Prix Actuel": "{:,.2f} MAD",
-            "Investissement": "{:,.2f} MAD",
-            "Valeur": "{:,.2f} MAD",
-            "P&L": "{:+,.2f} MAD",
-            "Performance %": "{:+.2f}%",
-            "Poids %": "{:.2f}%"
-        }).applymap(
-            lambda x: f"color: {RED}" if isinstance(x, str) and x.startswith('+') 
-            else (f"color: {RED}" if isinstance(x, str) and x.startswith('-') else ""),
-            subset=["P&L", "Performance %"]
-        )
-        
-        st.dataframe(styled_table, use_container_width=True)
-        
-        # Financial ratios
-        st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                <h3 style='color: {YELLOW};'>Ratios Financiers</h3>
-                <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;'>
-                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                        <div style='font-size: 14px; color: {YELLOW};'>Sharpe Ratio</div>
-                        <div style='font-size: 24px; font-weight: bold;'>{metrics['ratios']['sharpe_ratio']:.2f}</div>
-                    </div>
-                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                        <div style='font-size: 14px; color: {YELLOW};'>Beta</div>
-                        <div style='font-size: 24px; font-weight: bold;'>{metrics['ratios']['beta']:.2f}</div>
-                    </div>
-                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                        <div style='font-size: 14px; color: {YELLOW};'>Volatilité</div>
-                        <div style='font-size: 24px; font-weight: bold;'>{metrics['ratios']['volatility']}</div>
-                    </div>
-                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};'>
-                        <div style='font-size: 14px; color: {YELLOW};'>Rendement Annualisé</div>
-                        <div style='font-size: 24px; font-weight: bold;'>{metrics['ratios']['annual_return']}</div>
-                    </div>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Volatilité</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['ratios']['volatility']}</div>
+                </div>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Rendement Annualisé</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['ratios']['annual_return']}</div>
                 </div>
             </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Recommendations section
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
+            <h3 style='color: {YELLOW};'>Recommandations</h3>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    performance_data = pd.DataFrame(metrics["stock_performances"])
+    best_performer = performance_data.loc[performance_data['pnl_percentage'].idxmax()]
+    worst_performer = performance_data.loc[performance_data['pnl_percentage'].idxmin()]
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; border-left: 4px solid {RED}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);' class='responsive-padding'>
+                <h4 style='color: {YELLOW}; margin-top: 0;'>⭐ Meilleure Performance</h4>
+                <div style='display: flex; justify-content: space-between; align-items: center;'>
+                    <div>
+                        <div style='font-size: clamp(14px, 2vw, 18px); font-weight: bold;'>{best_performer['name']}</div>
+                        <div style='font-size: clamp(12px, 1.5vw, 14px); color: #666;'>{best_performer['symbol']} | {best_performer['sector']}</div>
+                    </div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
+                        +{best_performer['pnl_percentage']:.2f}%
+                    </div>
+                </div>
+                <div style='margin-top: 15px;'>
+                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Poids dans le portefeuille: {best_performer['weight']:.2f}%</div>
+                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Prix actuel: {best_performer['current_price']:,.2f} MAD</div>
+                </div>
+            </div>
             """, unsafe_allow_html=True)
     
-    with tab4:
-        # Recommendations
+    with col2:
         st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;'>
-                <h3 style='color: {YELLOW};'>Recommandations</h3>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        performance_data = pd.DataFrame(metrics["stock_performances"])
-        best_performer = performance_data.loc[performance_data['pnl_percentage'].idxmax()]
-        worst_performer = performance_data.loc[performance_data['pnl_percentage'].idxmin()]
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown(f"""
-                <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; border-left: 4px solid {RED}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
-                    <h4 style='color: {YELLOW}; margin-top: 0;'>⭐ Meilleure Performance</h4>
-                    <div style='display: flex; justify-content: space-between; align-items: center;'>
-                        <div>
-                            <div style='font-size: 18px; font-weight: bold;'>{best_performer['name']}</div>
-                            <div style='font-size: 14px; color: #666;'>{best_performer['symbol']} | {best_performer['sector']}</div>
-                        </div>
-                        <div style='font-size: 24px; font-weight: bold; color: {RED};'>
-                            +{best_performer['pnl_percentage']:.2f}%
-                        </div>
+            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; border-left: 4px solid {RED}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);' class='responsive-padding'>
+                <h4 style='color: {YELLOW}; margin-top: 0;'>⚠️ Performance à Surveiller</h4>
+                <div style='display: flex; justify-content: space-between; align-items: center;'>
+                    <div>
+                        <div style='font-size: clamp(14px, 2vw, 18px); font-weight: bold;'>{worst_performer['name']}</div>
+                        <div style='font-size: clamp(12px, 1.5vw, 14px); color: #666;'>{worst_performer['symbol']} | {worst_performer['sector']}</div>
                     </div>
-                    <div style='margin-top: 15px;'>
-                        <div style='font-size: 14px;'>Poids dans le portefeuille: {best_performer['weight']:.2f}%</div>
-                        <div style='font-size: 14px;'>Prix actuel: {best_performer['current_price']:,.2f} MAD</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
+                        {worst_performer['pnl_percentage']:.2f}%
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(f"""
-                <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; border-left: 4px solid {RED}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'>
-                    <h4 style='color: {YELLOW}; margin-top: 0;'>⚠️ Performance à Surveiller</h4>
-                    <div style='display: flex; justify-content: space-between; align-items: center;'>
-                        <div>
-                            <div style='font-size: 18px; font-weight: bold;'>{worst_performer['name']}</div>
-                            <div style='font-size: 14px; color: #666;'>{worst_performer['symbol']} | {worst_performer['sector']}</div>
-                        </div>
-                        <div style='font-size: 24px; font-weight: bold; color: {RED};'>
-                            {worst_performer['pnl_percentage']:.2f}%
-                        </div>
-                    </div>
-                    <div style='margin-top: 15px;'>
-                        <div style='font-size: 14px;'>Poids dans le portefeuille: {worst_performer['weight']:.2f}%</div>
-                        <div style='font-size: 14px;'>Prix actuel: {worst_performer['current_price']:,.2f} MAD</div>
-                    </div>
+                <div style='margin-top: 15px;'>
+                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Poids dans le portefeuille: {worst_performer['weight']:.2f}%</div>
+                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Prix actuel: {worst_performer['current_price']:,.2f} MAD</div>
                 </div>
-                """, unsafe_allow_html=True)
-        
-        # General recommendations based on portfolio metrics
-        st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-top: 20px;'>
-                <h4 style='color: {YELLOW}; margin-top: 0;'>Analyse Globale</h4>
-                {f"<p>Votre portefeuille présente un rendement de <strong>{metrics['pnl_percentage']:.2f}%</strong> avec un niveau de risque <strong>{metrics['ratios']['risk_level'].lower()}</strong>.</p>"}
-                {f"<p>La diversification sectorielle est <strong>{'bonne' if len(metrics['sector_distribution']) >= 4 else 'à améliorer'}</strong> avec {len(metrics['sector_distribution'])} secteurs représentés.</p>"}
-                <p>Considérez rééquilibrer votre portefeuille pour optimiser le ratio risque/rendement.</p>
             </div>
             """, unsafe_allow_html=True)
+    
+    # General recommendations based on portfolio metrics
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-top: 20px;' class='responsive-padding'>
+            <h4 style='color: {YELLOW}; margin-top: 0;'>Analyse Globale</h4>
+            {f"<p style='font-size: clamp(14px, 2vw, 16px);'>Votre portefeuille présente un rendement de <strong>{metrics['pnl_percentage']:.2f}%</strong> avec un niveau de risque <strong>{metrics['ratios']['risk_level'].lower()}</strong>.</p>"}
+            {f"<p style='font-size: clamp(14px, 2vw, 16px);'>La diversification sectorielle est <strong>{'bonne' if len(metrics['sector_distribution']) >= 4 else 'à améliorer'}</strong> avec {len(metrics['sector_distribution'])} secteurs représentés.</p>"}
+            <p style='font-size: clamp(14px, 2vw, 16px);'>Considérez rééquilibrer votre portefeuille pour optimiser le ratio risque/rendement.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # Footer
 st.markdown(f"""
-    <div style='background-color: {BLACK}; color: {YELLOW}; padding: 15px; border-radius: 10px; margin-top: 30px; text-align: center; border: 2px solid {RED};'>
-        <div style='display: flex; justify-content: center; gap: 20px; margin-bottom: 10px;'>
-            <a href='https://risk.ma/bourse-de-casablanca' target='_blank' style='color: {YELLOW}; text-decoration: none;'>www.risk.ma</a>
-            <a href='https://instagram.com/risk.maroc' target='_blank' style='color: {YELLOW}; text-decoration: none;'>Instagram</a>
-            <a href='https://tiktok.com/@risk.maroc' target='_blank' style='color: {YELLOW}; text-decoration: none;'>TikTok</a>
+    <div style='background-color: {BLACK}; color: {YELLOW}; padding: 15px; border-radius: 10px; margin-top: 30px; text-align: center; border: 2px solid {RED};' class='responsive-padding'>
+        <div style='display: flex; justify-content: center; gap: 20px; margin-bottom: 10px;' class='footer-container responsive-flex'>
+            <a href='https://risk.ma/bourse-de-casablanca' target='_blank' style='color: {YELLOW}; text-decoration: none; font-size: clamp(12px, 2vw, 14px);'>www.risk.ma</a>
+            <a href='https://instagram.com/risk.maroc' target='_blank' style='color: {YELLOW}; text-decoration: none; font-size: clamp(12px, 2vw, 14px);'>Instagram</a>
+            <a href='https://tiktok.com/@risk.maroc' target='_blank' style='color: {YELLOW}; text-decoration: none; font-size: clamp(12px, 2vw, 14px);'>TikTok</a>
         </div>
-        <p style='margin: 0;'>© 2025 @risk.maroc - Plateforme d'analyse financière pour la Bourse de Casablanca</p>
-        <p style='margin: 0; font-size: 12px;'>@dogofallstreets | @risk.maroc | www.risk.ma</p>
+        <p style='margin: 0; font-size: clamp(12px, 2vw, 14px);'>© 2025 @risk.maroc - Plateforme d'analyse financière pour la Bourse de Casablanca</p>
+        <p style='margin: 0; font-size: clamp(10px, 1.5vw, 12px);'>@dogofallstreets | @risk.maroc | www.risk.ma</p>
     </div>
     """, unsafe_allow_html=True)
