@@ -306,7 +306,7 @@ st.markdown(f"""
     <div style='background-color: {BLACK}; color: {YELLOW}; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid {RED};'>
         <div style='display: flex; align-items: center; justify-content: space-between;'>
             <div>
-                <h1 style='margin: 0; color: {YELLOW};'>Portfolio Risk.MA</h1>
+                <h1 style='margin: 0; color: {YELLOW};'>Portefeuille Bourse de Casablanca | @risk.maroc </h1>
                 <p style='margin: 0;'>Tableau de bord d'investissement - Bourse de Casablanca</p>
             </div>
             <div style='display: flex; align-items: center; gap: 15px;'>
