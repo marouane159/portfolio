@@ -1,4 +1,4 @@
-# Portfolio Risk.MA - Bourse de Casablanca
+# Bourse de Casablanca | Portefeuille
 
 A Streamlit-based portfolio management and analysis dashboard for the Casablanca Stock Exchange.
 
