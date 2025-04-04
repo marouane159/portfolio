@@ -37,31 +37,54 @@ def calculate_portfolio_metrics(stocks_data):
     
     # Calcul des performances par action
     stock_performances = []
+    total_dividends = 0  # Assuming we'll add dividend data later
+    
     for stock in stocks_data:
         stock_value = stock["quantity"] * stock["current_price"]
         stock_investment = stock["quantity"] * stock["buy_price"]
         stock_pnl = stock_value - stock_investment
         stock_pnl_percentage = (stock_pnl / stock_investment * 100) if stock_investment > 0 else 0
         
+        # Calculate individual stock metrics
+        cost_basis = stock["buy_price"]
+        market_price = stock["current_price"]
+        unrealized_gain = stock_pnl
+        position_weight = (stock_value / current_value * 100) if current_value > 0 else 0
+        
+        # Calculate breakeven price
+        breakeven_price = cost_basis  # Will be adjusted when we add transaction costs
+        
+        # Calculate distance to breakeven
+        distance_to_breakeven = ((breakeven_price - market_price) / market_price * 100)
+        
         stock_performances.append({
             "symbol": stock["symbol"],
             "name": stock["name"],
             "current_price": stock["current_price"],
+            "buy_price": stock["buy_price"],
+            "quantity": stock["quantity"],
             "value": stock_value,
             "investment": stock_investment,
             "pnl": stock_pnl,
             "pnl_percentage": stock_pnl_percentage,
-            "weight": (stock_value / current_value * 100) if current_value > 0 else 0,
-            "sector": stock.get("sector", "Autre")
+            "weight": position_weight,
+            "sector": stock.get("sector", "Autre"),
+            "unrealized_gain": unrealized_gain,
+            "cost_basis": cost_basis,
+            "breakeven_price": breakeven_price,
+            "distance_to_breakeven": distance_to_breakeven
         })
     
-    # Calcul des ratios financiers
-    sharpe_ratio = 1.2  # Simplified calculation
-    beta = 0.8  # Simplified calculation
-    volatility = "15%"  # Simplified calculation
-    annual_return = f"{pnl_percentage:.2f}%"  # Using current performance as annualized for demo
+    # Portfolio Risk Metrics
+    # Note: These are simplified calculations. In a real application, these would use historical data
+    volatility = 15  # Simplified - should use historical price data
+    beta = 0.8  # Simplified - should calculate using market correlation
+    alpha = 2.5  # Simplified - should calculate vs benchmark
+    sharpe_ratio = 1.2  # Simplified - should use risk-free rate and std dev
+    sortino_ratio = 1.5  # Simplified - should use downside deviation
+    max_drawdown = -12.5  # Simplified - should calculate from historical data
     
-    # Calculate sector distribution
+    # Portfolio Concentration Metrics
     sector_distribution = {}
     for stock in stock_performances:
         sector = stock["sector"]
@@ -69,33 +92,88 @@ def calculate_portfolio_metrics(stocks_data):
             sector_distribution[sector] = 0
         sector_distribution[sector] += stock["value"]
     
-    # Calculate risk level based on beta and volatility
-    risk_score = beta * float(volatility.strip('%')) / 10
-    if risk_score < 0.5:
+    # Calculate sector concentration
+    total_value = sum(sector_distribution.values())
+    sector_weights = {k: (v/total_value)*100 for k, v in sector_distribution.items()}
+    
+    # Calculate Herfindahl-Hirschman Index (HHI) for concentration
+    hhi_sectors = sum((weight/100)**2 for weight in sector_weights.values()) * 10000
+    hhi_stocks = sum((stock["weight"]/100)**2 for stock in stock_performances) * 10000
+    
+    # Portfolio Quality Metrics
+    avg_pnl_percentage = sum(stock["pnl_percentage"] for stock in stock_performances) / len(stock_performances)
+    winning_positions = sum(1 for stock in stock_performances if stock["pnl"] > 0)
+    losing_positions = len(stock_performances) - winning_positions
+    win_rate = (winning_positions / len(stock_performances) * 100) if stock_performances else 0
+    
+    # Calculate risk level based on multiple factors
+    risk_factors = {
+        "volatility": volatility / 20,  # Normalize to 0-1 scale
+        "beta": beta,
+        "concentration": hhi_stocks / 10000,  # Already 0-1 scale
+        "max_drawdown": abs(max_drawdown) / 100  # Convert to 0-1 scale
+    }
+    
+    risk_score = sum(risk_factors.values()) / len(risk_factors)
+    
+    if risk_score < 0.3:
         risk_level = "Faible"
         risk_color = YELLOW
-    elif risk_score < 1.0:
+    elif risk_score < 0.6:
         risk_level = "Modéré"
         risk_color = DARK_YELLOW
     else:
         risk_level = "Élevé"
         risk_color = RED
     
+    # Return enhanced metrics
     return {
         "total_investment": total_investment,
         "current_value": current_value,
         "pnl": pnl,
         "pnl_percentage": pnl_percentage,
         "stock_performances": stock_performances,
+        "sector_distribution": sector_distribution,
+        "sector_weights": sector_weights,
+        
+        # Risk Metrics
         "ratios": {
             "sharpe_ratio": sharpe_ratio,
+            "sortino_ratio": sortino_ratio,
             "beta": beta,
-            "volatility": volatility,
-            "annual_return": annual_return,
+            "alpha": alpha,
+            "volatility": f"{volatility}%",
+            "max_drawdown": f"{max_drawdown}%",
             "risk_level": risk_level,
             "risk_color": risk_color
         },
-        "sector_distribution": sector_distribution
+        
+        # Concentration Metrics
+        "concentration": {
+            "hhi_sectors": hhi_sectors,
+            "hhi_stocks": hhi_stocks,
+            "sector_concentration": max(sector_weights.values()) if sector_weights else 0,
+            "top_holding_weight": max(stock["weight"] for stock in stock_performances)
+        },
+        
+        # Performance Metrics
+        "performance": {
+            "total_return": pnl_percentage,
+            "avg_position_return": avg_pnl_percentage,
+            "win_rate": win_rate,
+            "winning_positions": winning_positions,
+            "losing_positions": losing_positions,
+            "best_position": max(stock["pnl_percentage"] for stock in stock_performances),
+            "worst_position": min(stock["pnl_percentage"] for stock in stock_performances)
+        },
+        
+        # Portfolio Health Metrics
+        "health": {
+            "diversification_score": 100 - (hhi_stocks / 100),  # Higher is better
+            "risk_adjusted_return": pnl_percentage / (volatility if volatility > 0 else 1),
+            "total_dividends": total_dividends,
+            "dividend_yield": (total_dividends / current_value * 100) if current_value > 0 else 0
+        }
     }
 
 # Base stock data with symbols and sectors
@@ -417,7 +495,21 @@ st.markdown(f"""
     </div>
     """, unsafe_allow_html=True)
 
-# Sidebar for data input
+# Add JavaScript for sidebar control
+st.markdown("""
+    <script>
+        // Function to toggle sidebar visibility
+        function toggleSidebar(show) {
+            const sidebar = window.parent.document.querySelector('.css-1d391kg');
+            if (sidebar) {
+                sidebar.style.display = show ? 'block' : 'none';
+                sidebar.style.transition = 'all 0.3s ease-in-out';
+            }
+        }
+    </script>
+""", unsafe_allow_html=True)
+
+# Sidebar for data input with mobile optimizations
 with st.sidebar:
     st.markdown(f"""
         <div style='background-color: {BLACK}; color: {YELLOW}; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid {RED};'>
@@ -515,10 +607,59 @@ with st.sidebar:
             st.error("Veuillez ajouter au moins une action à votre portefeuille.")
         else:
             st.session_state.portfolio_metrics = calculate_portfolio_metrics(stocks_data)
+            # Auto-hide the sidebar
+            st.markdown("""
+                <script>
+                    var elements = window.parent.document.getElementsByClassName("css-1d391kg");
+                    if (elements.length > 0) {
+                        elements[0].style.display = "none";
+                    }
+                </script>
+                """, unsafe_allow_html=True)
 
 # Main content area
 if 'portfolio_metrics' in st.session_state:
     metrics = st.session_state.portfolio_metrics
+    
+    # Single menu button in a fixed position
+    st.markdown("""
+        <style>
+            #menu-button {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 999;
+                background-color: black;
+                border: 1px solid #FF0000;
+                color: #FFFF00;
+                padding: 8px 12px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 20px;
+                transition: all 0.3s ease;
+            }
+            #menu-button:hover {
+                background-color: #FF0000;
+                color: black;
+            }
+        </style>
+        <button id="menu-button" onclick="toggleMenu()">☰</button>
+        <script>
+            function toggleMenu() {
+                var sidebar = window.parent.document.getElementsByClassName("css-1d391kg")[0];
+                if (sidebar) {
+                    sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+            // Execute once to ensure sidebar is hidden initially on mobile
+            if (window.innerWidth <= 768) {
+                var sidebar = window.parent.document.getElementsByClassName("css-1d391kg")[0];
+                if (sidebar) {
+                    sidebar.style.display = 'none';
+                }
+            }
+        </script>
+    """, unsafe_allow_html=True)
     
     # Portfolio summary cards
     st.markdown(f"""
@@ -534,7 +675,7 @@ if 'portfolio_metrics' in st.session_state:
                     <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['current_value']:,.2f} MAD</div>
                 </div>
                 <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
-                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Profit & Loss</div>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Gain & Perte</div>
                     <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
                         {metrics['pnl']:,.2f} MAD ({metrics['pnl_percentage']:.2f}%)
                     </div>
@@ -559,45 +700,96 @@ if 'portfolio_metrics' in st.session_state:
     # Create performance data
     performance_data = pd.DataFrame(metrics["stock_performances"])
     
-    # Portfolio evolution chart (simulated)
-    dates = pd.date_range(start=datetime.now() - timedelta(days=30), end=datetime.now())
-    portfolio_values = np.linspace(
-        metrics['total_investment'], 
-        metrics['current_value'], 
-        len(dates)
-    )
+    # Create buy vs current price comparison chart
+    fig_price_comparison = go.Figure()
     
-    fig_evolution = go.Figure()
-    fig_evolution.add_trace(go.Scatter(
-        x=dates,
-        y=portfolio_values,
-        mode='lines',
-        line=dict(color=RED, width=3),
-        name='Valeur du Portefeuille'
-    ))
-    fig_evolution.update_layout(
+    # Sort stocks by performance percentage
+    sorted_performance = performance_data.sort_values('pnl_percentage', ascending=True)
+    
+    for _, stock in sorted_performance.iterrows():
+        # Find the original stock data to get buy price
+        stock_data = next((s for s in stocks_data if s["symbol"] == stock["symbol"]), None)
+        if stock_data:
+            buy_price = stock_data["buy_price"]
+            current_price = stock["current_price"]
+            
+            # Add buy price point
+            fig_price_comparison.add_trace(go.Scatter(
+                x=[stock["symbol"]],
+                y=[buy_price],
+                mode='markers',
+                name=f'Prix d\'achat - {stock["symbol"]}',
+                marker=dict(color=DARK_RED, size=12, symbol='circle'),
+                showlegend=False
+            ))
+            
+            # Add current price point
+            fig_price_comparison.add_trace(go.Scatter(
+                x=[stock["symbol"]],
+                y=[current_price],
+                mode='markers',
+                name=f'Prix actuel - {stock["symbol"]}',
+                marker=dict(color=YELLOW, size=12, symbol='star'),
+                showlegend=False
+            ))
+            
+            # Add connecting line
+            fig_price_comparison.add_trace(go.Scatter(
+                x=[stock["symbol"], stock["symbol"]],
+                y=[buy_price, current_price],
+                mode='lines',
+                line=dict(color=RED if current_price < buy_price else YELLOW, width=2),
+                showlegend=False
+            ))
+
+    # Update layout
+    fig_price_comparison.update_layout(
+        title=dict(
+            text="Évolution des Prix par Action",
+            font=dict(color=YELLOW),
+            x=0.5
+        ),
         plot_bgcolor=BLACK,
         paper_bgcolor=BLACK,
         font=dict(color=YELLOW),
         xaxis=dict(
-            title=dict(text='Date', font=dict(color=YELLOW)),
+            title="Actions",
             tickfont=dict(color=YELLOW),
             gridcolor=RED,
             linecolor=RED,
             zerolinecolor=RED
         ),
         yaxis=dict(
-            title=dict(text='Valeur (MAD)', font=dict(color=YELLOW)),
+            title="Prix (MAD)",
             tickfont=dict(color=YELLOW),
             gridcolor=RED,
             linecolor=RED,
             zerolinecolor=RED
         ),
-        hovermode="x unified",
-        height=400,
-        width=None
+        showlegend=True,
+        height=500,
+        width=None,
+        margin=dict(l=50, r=50, t=50, b=50),
+        hovermode='closest'
     )
-    st.plotly_chart(fig_evolution, use_container_width=True)
+    
+    # Add a custom legend
+    fig_price_comparison.add_trace(go.Scatter(
+        x=[None],
+        y=[None],
+        mode='markers',
+        marker=dict(color=DARK_RED, size=12, symbol='circle'),
+        name='Prix d\'achat'
+    ))
+    fig_price_comparison.add_trace(go.Scatter(
+        x=[None],
+        y=[None],
+        mode='markers',
+        marker=dict(color=YELLOW, size=12, symbol='star'),
+        name='Prix actuel'
+    ))
+
+    st.plotly_chart(fig_price_comparison, use_container_width=True)
     
     # Individual stock performance
     fig_perf = px.bar(
@@ -695,9 +887,8 @@ if 'portfolio_metrics' in st.session_state:
         "P&L": "{:+,.2f} MAD",
         "Performance %": "{:+.2f}%",
         "Poids %": "{:.2f}%"
-    }).applymap(
-        lambda x: f"color: {RED}" if isinstance(x, str) and x.startswith('+') 
-        else (f"color: {RED}" if isinstance(x, str) and x.startswith('-') else ""),
+    }).map(
+        lambda x: f"color: {RED}" if isinstance(x, str) and (x.startswith('+') or x.startswith('-')) else "",
         subset=["P&L", "Performance %"]
     )
     
@@ -721,75 +912,245 @@ if 'portfolio_metrics' in st.session_state:
                     <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['ratios']['volatility']}</div>
                 </div>
                 <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED};' class='responsive-padding'>
-                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Rendement Annualisé</div>
-                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['ratios']['annual_return']}</div>
+                    <div style='font-size: clamp(12px, 2vw, 14px); color: {YELLOW};'>Performance Totale</div>
+                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold;'>{metrics['performance']['total_return']:.2f}%</div>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Recommendations section
+    # Win Rate and Drawdown Section
     st.markdown(f"""
-        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
-            <h3 style='color: {YELLOW};'>Recommandations</h3>
+        <div style='background-color: #000000; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid #FFFF00;'>
+            <h3 style='color: #FFFF00;'>Performance et Risque</h3>
+            <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;' class='responsive-grid'>
+                <!-- Win Rate Card -->
+                <div style='background-color: #000000; padding: 20px; border-radius: 10px; border: 1px solid #FFFF00;'>
+                    <h4 style='color: #FFFF00; margin-bottom: 15px;'>📈 Taux de Réussite</h4>
+                    <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;'>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Taux de Réussite</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['win_rate']:.1f}%</div>
+                        </div>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Positions Gagnantes</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['winning_positions']}/{len(metrics['stock_performances'])}</div>
+                        </div>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Meilleure Position</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>+{metrics['performance']['best_position']:.1f}%</div>
+                        </div>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Performance Moyenne</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['avg_position_return']:.1f}%</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Risk Metrics Card -->
+                <div style='background-color: #000000; padding: 20px; border-radius: 10px; border: 1px solid #FFFF00;'>
+                    <h4 style='color: #FFFF00; margin-bottom: 15px;'>📊 Métriques de Risque</h4>
+                    <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;'>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Drawdown Maximum</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['ratios']['max_drawdown']}</div>
+                        </div>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Pire Position</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['worst_position']:.1f}%</div>
+                        </div>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Score de Diversification</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['health']['diversification_score']:.0f}/100</div>
+                        </div>
+                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
+                            <div style='font-size: 14px; color: #FFFF00;'>Ratio de Sharpe</div>
+                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['ratios']['sharpe_ratio']:.2f}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
+    # Recommendations section
+    st.markdown("""
+        <div style='background-color: #000000; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid #FFFF00;'>
+            <h3 style='color: #FFFF00;'>Recommandations</h3>
+        </div>
+    """, unsafe_allow_html=True)
     
     performance_data = pd.DataFrame(metrics["stock_performances"])
     best_performer = performance_data.loc[performance_data['pnl_percentage'].idxmax()]
     worst_performer = performance_data.loc[performance_data['pnl_percentage'].idxmin()]
     
+    # Calculate additional metrics for recommendations
+    portfolio_concentration = metrics['concentration']['sector_concentration']
+    diversification_score = metrics['health']['diversification_score']
+    risk_level = metrics['ratios']['risk_level']
+    volatility = float(metrics['ratios']['volatility'].strip('%'))
+    beta = metrics['ratios']['beta']
+    
+    # Generate trading signals
+    def generate_trading_signals(stock_data):
+        current_price = stock_data['current_price']
+        buy_price = stock_data['buy_price']
+        weight = stock_data['weight']
+        pnl = stock_data['pnl']
+        
+        trend = "haussier" if current_price > buy_price else "baissier"
+        
+        if weight > 25:
+            size_rec = "réduire"
+        elif weight < 5:
+            size_rec = "augmenter"
+        else:
+            size_rec = "maintenir"
+            
+        if pnl > 0 and weight > 25:
+            action = "Prendre des bénéfices partiels"
+        elif pnl < 0 and weight < 5:
+            action = "Opportunité d'accumulation"
+        elif pnl < 0 and weight > 15:
+            action = "Surveiller de près"
+        else:
+            action = "Maintenir la position"
+            
+        return trend, size_rec, action
+
+    # Generate portfolio health recommendations
+    portfolio_health = []
+    if portfolio_concentration > 40:
+        portfolio_health.append("⚠️ Forte concentration sectorielle - Envisager une diversification")
+    if diversification_score < 60:
+        portfolio_health.append("⚠️ Score de diversification faible - Ajouter des positions non corrélées")
+    if volatility > 20:
+        portfolio_health.append("⚠️ Volatilité élevée - Considérer des positions défensives")
+    if beta > 1.2:
+        portfolio_health.append("⚠️ Beta élevé - Le portefeuille est plus volatil que le marché")
+    
+    # Best and worst performers analysis
+    best_trend, best_size, best_action = generate_trading_signals(best_performer)
+    worst_trend, worst_size, worst_action = generate_trading_signals(worst_performer)
+    
+    # Create two columns for recommendations
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; border-left: 4px solid {RED}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);' class='responsive-padding'>
-                <h4 style='color: {YELLOW}; margin-top: 0;'>⭐ Meilleure Performance</h4>
-                <div style='display: flex; justify-content: space-between; align-items: center;'>
-                    <div>
-                        <div style='font-size: clamp(14px, 2vw, 18px); font-weight: bold;'>{best_performer['name']}</div>
-                        <div style='font-size: clamp(12px, 1.5vw, 14px); color: #666;'>{best_performer['symbol']} | {best_performer['sector']}</div>
-                    </div>
-                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
-                        +{best_performer['pnl_percentage']:.2f}%
-                    </div>
-                </div>
-                <div style='margin-top: 15px;'>
-                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Poids dans le portefeuille: {best_performer['weight']:.2f}%</div>
-                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Prix actuel: {best_performer['current_price']:,.2f} MAD</div>
+            <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {YELLOW}; margin-bottom: 15px;'>
+                <h4 style='color: {YELLOW}; margin-bottom: 15px;'>🌟 Position Performante</h4>
+                <div style='color: {YELLOW};'>
+                    <p><strong>{best_performer['name']} ({best_performer['symbol']})</strong></p>
+                    <p>• Tendance: {best_trend}</p>
+                    <p>• Performance: +{best_performer['pnl_percentage']:.1f}%</p>
+                    <p>• Poids: {best_performer['weight']:.1f}%</p>
+                    <p>• Recommandation: {best_action}</p>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
-            <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; border-left: 4px solid {RED}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);' class='responsive-padding'>
-                <h4 style='color: {YELLOW}; margin-top: 0;'>⚠️ Performance à Surveiller</h4>
-                <div style='display: flex; justify-content: space-between; align-items: center;'>
-                    <div>
-                        <div style='font-size: clamp(14px, 2vw, 18px); font-weight: bold;'>{worst_performer['name']}</div>
-                        <div style='font-size: clamp(12px, 1.5vw, 14px); color: #666;'>{worst_performer['symbol']} | {worst_performer['sector']}</div>
-                    </div>
-                    <div style='font-size: clamp(18px, 3vw, 24px); font-weight: bold; color: {RED};'>
-                        {worst_performer['pnl_percentage']:.2f}%
-                    </div>
-                </div>
-                <div style='margin-top: 15px;'>
-                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Poids dans le portefeuille: {worst_performer['weight']:.2f}%</div>
-                    <div style='font-size: clamp(12px, 1.5vw, 14px);'>Prix actuel: {worst_performer['current_price']:,.2f} MAD</div>
+            <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border-left: 4px solid {RED}; margin-bottom: 15px;'>
+                <h4 style='color: {YELLOW}; margin-bottom: 15px;'>⚠️ Position à Surveiller</h4>
+                <div style='color: {YELLOW};'>
+                    <p><strong>{worst_performer['name']} ({worst_performer['symbol']})</strong></p>
+                    <p>• Tendance: {worst_trend}</p>
+                    <p>• Performance: {worst_performer['pnl_percentage']:.1f}%</p>
+                    <p>• Poids: {worst_performer['weight']:.1f}%</p>
+                    <p>• Recommandation: {worst_action}</p>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
-    
-    # General recommendations based on portfolio metrics
-    st.markdown(f"""
-        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-top: 20px;' class='responsive-padding'>
-            <h4 style='color: {YELLOW}; margin-top: 0;'>Analyse Globale</h4>
-            {f"<p style='font-size: clamp(14px, 2vw, 16px);'>Votre portefeuille présente un rendement de <strong>{metrics['pnl_percentage']:.2f}%</strong> avec un niveau de risque <strong>{metrics['ratios']['risk_level'].lower()}</strong>.</p>"}
-            {f"<p style='font-size: clamp(14px, 2vw, 16px);'>La diversification sectorielle est <strong>{'bonne' if len(metrics['sector_distribution']) >= 4 else 'à améliorer'}</strong> avec {len(metrics['sector_distribution'])} secteurs représentés.</p>"}
-            <p style='font-size: clamp(14px, 2vw, 16px);'>Considérez rééquilibrer votre portefeuille pour optimiser le ratio risque/rendement.</p>
-        </div>
         """, unsafe_allow_html=True)
+
+    # Portfolio Health Section
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid {YELLOW};'>
+            <h4 style='color: {YELLOW}; margin-bottom: 15px;'>Diagnostic du Portefeuille</h4>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    if portfolio_health:
+        for health_item in portfolio_health:
+            st.markdown(f"""
+                <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
+                    {health_item}
+                </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
+                ✅ Le portefeuille est bien équilibré
+            </div>
+        """, unsafe_allow_html=True)
+
+    # Strategic Recommendations
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid {YELLOW};'>
+            <h4 style='color: {YELLOW}; margin-bottom: 15px;'>Recommandations Stratégiques</h4>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Create metrics display with yellow styling
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; text-align: center; border: 1px solid {YELLOW};'>
+                <div style='font-size: 14px;'>Niveau de Risque</div>
+                <div style='font-size: 20px; font-weight: bold;'>{risk_level}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; text-align: center; border: 1px solid {YELLOW};'>
+                <div style='font-size: 14px;'>Beta</div>
+                <div style='font-size: 20px; font-weight: bold;'>{beta:.2f}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; text-align: center; border: 1px solid {YELLOW};'>
+                <div style='font-size: 14px;'>Volatilité</div>
+                <div style='font-size: 20px; font-weight: bold;'>{volatility:.1f}%</div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    # Strategic Actions
+    st.markdown(f"""
+        <div style='color: {YELLOW}; margin-top: 20px; font-size: 18px; font-weight: bold;'>Actions Recommandées</div>
+    """, unsafe_allow_html=True)
+    
+    if portfolio_concentration > 40:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
+                • Rééquilibrage sectoriel nécessaire - concentration actuelle: {portfolio_concentration:.1f}%
+            </div>
+        """, unsafe_allow_html=True)
+    if diversification_score < 60:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
+                • Améliorer la diversification - score actuel: {diversification_score:.1f}/100
+            </div>
+        """, unsafe_allow_html=True)
+    if volatility > 20:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
+                • Considérer des positions défensives pour réduire la volatilité
+            </div>
+        """, unsafe_allow_html=True)
+    if beta > 1.2:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
+                • Surveiller le beta élevé du portefeuille
+            </div>
+        """, unsafe_allow_html=True)
+
+    # Signature
+    st.markdown("""
+        <div style='text-align: right; margin-top: 20px; font-style: italic; color: #00FF00; font-size: 12px;'>
+            ~@dogofallstreets
+        </div>
+    """, unsafe_allow_html=True)
 
 # Footer
 st.markdown(f"""
