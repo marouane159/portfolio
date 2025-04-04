@@ -6,14 +6,15 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import time
+
+# Configure the Streamlit page
+st.set_page_config(
+    page_title="Bourse de Casablanca Portefeuille",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # Color scheme
 BLACK = "#000000"
@@ -209,14 +210,6 @@ def get_moroccan_stocks():
     except Exception as e:
         st.error(f"Error while fetching stock data: {str(e)}")
         return None
-
-# Configuration de la page
-st.set_page_config(
-    page_title="Bourse de Casablanca Portefeuille Par @risk.maroc",
-    page_icon="📈",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # Custom CSS for the new design
 st.markdown(f"""
