@@ -212,7 +212,7 @@ def get_moroccan_stocks():
 
 # Configuration de la page
 st.set_page_config(
-    page_title="Portfolio Risk.MA",
+    page_title="Bourse de Casablanca Portefeuille Par @risk.maroc",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
