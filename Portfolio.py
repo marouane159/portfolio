@@ -246,7 +246,7 @@ BASE_STOCKS = [
     {"symbol": "CMG", "name": "CMGP CAS", "sector": "Agriculture"},
     {"symbol": "HPS", "name": "HPS", "sector": "Paiment"},
     {"symbol": "RIS", "name": "RISMA", "sector": "Hotel Management"},
-    {"symbol": "DHO", "name": "DELTA HOLDING", "sector": "Industrie"}
+    {"symbol": "DHO", "name": "DELTA HOLDING", "sector": "Industrie"},
     {"symbol": "DWY", "name": "DISWAY", "sector": "Distribution éléctro"}
 ]
 
