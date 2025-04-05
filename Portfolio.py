@@ -238,7 +238,16 @@ BASE_STOCKS = [
     {"symbol": "TQM", "name": "TAQA MOROCCO", "sector": "Énergie"},
     {"symbol": "UMR", "name": "UNIMER", "sector": "Agroalimentaire"},
     {"symbol": "WAA", "name": "WAFA ASSURANCE", "sector": "Assurance"},
-    {"symbol": "ZDJ", "name": "ZELLIDJA S.A", "sector": "Mines"}
+    {"symbol": "ZDJ", "name": "ZELLIDJA S.A", "sector": "Mines"},
+    {"symbol": "MSA", "name": "SODEP MARSA MAROC", "sector": "Transport"},
+    {"symbol": "RDS", "name": "RESIDENCE DAR SAADA", "sector": "Construction"},
+    {"symbol": "CSR", "name": "COSUMAR", "sector": "Industrie"},
+    {"symbol": "CFG", "name": "CFG BANK", "sector": "Banque"},
+    {"symbol": "CMG", "name": "CMGP CAS", "sector": "Agriculture"},
+    {"symbol": "HPS", "name": "HPS", "sector": "Paiment"},
+    {"symbol": "RIS", "name": "RISMA", "sector": "Hotel Management"},
+    {"symbol": "DHO", "name": "DELTA HOLDING", "sector": "Industrie"}
+    {"symbol": "DWY", "name": "DISWAY", "sector": "Distribution éléctro"}
 ]
 
 def get_moroccan_stocks():
