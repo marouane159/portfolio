@@ -10,8 +10,8 @@ import time
 
 # Configure the Streamlit page
 st.set_page_config(
-    page_title="Bourse de Casablanca Portefeuille",
-    page_icon="📈",
+    page_title="Bourse de Casablanca | Analyse de Portefeuille",
+    page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -23,6 +23,7 @@ YELLOW = "#FFFF00"
 DARK_RED = "#CC0000"
 DARK_YELLOW = "#CCCC00"
 WHITE = "#FFFFFF"
+GREEN = "#00FF00"
 
 # Fonction pour calculer les métriques du portefeuille
 def calculate_portfolio_metrics(stocks_data):
@@ -34,6 +35,9 @@ def calculate_portfolio_metrics(stocks_data):
     current_value = sum(stock["quantity"] * stock["current_price"] for stock in stocks_data)
     pnl = current_value - total_investment
     pnl_percentage = (pnl / total_investment * 100) if total_investment > 0 else 0
+    
+    # Calcul du drawdown maximum
+    max_drawdown = 0 if pnl > 0 else abs(pnl_percentage)
     
     # Calcul des performances par action
     stock_performances = []
@@ -82,7 +86,6 @@ def calculate_portfolio_metrics(stocks_data):
     alpha = 2.5  # Simplified - should calculate vs benchmark
     sharpe_ratio = 1.2  # Simplified - should use risk-free rate and std dev
     sortino_ratio = 1.5  # Simplified - should use downside deviation
-    max_drawdown = -12.5  # Simplified - should calculate from historical data
     
     # Portfolio Concentration Metrics
     sector_distribution = {}
@@ -174,6 +177,21 @@ def calculate_portfolio_metrics(stocks_data):
             "total_dividends": total_dividends,
             "dividend_yield": (total_dividends / current_value * 100) if current_value > 0 else 0
         }
+    }
+
+# Add compound interest calculator
+def calculate_compound_interest(initial_investment, years, annual_return=10):
+    """
+    Calculate compound interest based on MASI average performance
+    """
+    final_amount = initial_investment * (1 + annual_return/100) ** years
+    total_return = final_amount - initial_investment
+    return {
+        "initial_investment": initial_investment,
+        "final_amount": final_amount,
+        "total_return": total_return,
+        "annual_return": annual_return,
+        "years": years
     }
 
 # Base stock data with symbols and sectors
@@ -466,13 +484,36 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
+# Add custom HTML for favicon and meta tags
+st.markdown("""
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://risk.ma/bourse-de-casablanca">
+    <meta property="og:title" content="Portefeuille Bourse de Casablanca | @risk.maroc">
+    <meta property="og:description" content="Tableau de bord d'investissement pour la Bourse de Casablanca avec analyse de portefeuille">
+    <meta property="og:image" content="https://www.casablanca-bourse.com/_next/static/media/logo.1b5cfecc.webp">
+    <meta property="og:image:width" content="1920">
+    <meta property="og:image:height" content="1080">
+    <meta property="og:image:type" content="image/webp">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://risk.ma/bourse-de-casablanca">
+    <meta property="twitter:title" content="Portefeuille Bourse de Casablanca | @risk.maroc">
+    <meta property="twitter:description" content="Tableau de bord d'investissement pour la Bourse de Casablanca avec analyse de portefeuille">
+    <meta property="twitter:image" content="https://www.casablanca-bourse.com/_next/static/media/logo.1b5cfecc.webp">
+""", unsafe_allow_html=True)
+
 # Header with logo and title
 st.markdown(f"""
     <div style='background-color: {BLACK}; color: {YELLOW}; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid {RED};' class='responsive-padding'>
         <div style='display: flex; align-items: center; justify-content: space-between;' class='header-container responsive-flex'>
             <div style='flex: 1;'>
                 <h1 style='margin: 0; color: {YELLOW}; font-size: clamp(24px, 4vw, 32px);'>Portefeuille Bourse de Casablanca</h1>
-                <p style='margin: 0; font-size: clamp(14px, 2vw, 16px);'>Tableau de bord d'investissement - Bourse de Casablanca</p>
+                <p style='margin: 0; font-size: clamp(14px, 2vw, 16px);'>Tableau de bord d'investissement | @dogofallstreets | @risk.maroc</p>
             </div>
             <div style='display: flex; align-items: center; gap: 15px;' class='responsive-flex'>
                 <div style='background-color: {RED}; padding: 5px 10px; border-radius: 5px; color: {BLACK}; font-weight: bold;'>
@@ -996,41 +1037,57 @@ if 'portfolio_metrics' in st.session_state:
         buy_price = stock_data['buy_price']
         weight = stock_data['weight']
         pnl = stock_data['pnl']
+        pnl_percentage = stock_data['pnl_percentage']
         
         trend = "haussier" if current_price > buy_price else "baissier"
         
         if weight > 25:
             size_rec = "réduire"
+            size_detail = f"Considérer une réduction de {min(10, weight - 20)}% de la position"
         elif weight < 5:
             size_rec = "augmenter"
+            size_detail = f"Opportunité d'augmenter jusqu'à {10 - weight}% de la position"
         else:
             size_rec = "maintenir"
+            size_detail = "Poids actuel optimal"
             
         if pnl > 0 and weight > 25:
             action = "Prendre des bénéfices partiels"
+            action_detail = f"Considérer une prise de bénéfices de {min(30, pnl_percentage)}% de la position"
         elif pnl < 0 and weight < 5:
             action = "Opportunité d'accumulation"
+            action_detail = f"Accumulation recommandée avec un objectif de {10 - weight}% du portefeuille"
         elif pnl < 0 and weight > 15:
             action = "Surveiller de près"
+            action_detail = "Mettre en place un stop-loss et surveiller les fondamentaux"
         else:
             action = "Maintenir la position"
+            action_detail = "La position est bien équilibrée"
             
-        return trend, size_rec, action
+        return trend, size_rec, size_detail, action, action_detail
 
     # Generate portfolio health recommendations
     portfolio_health = []
     if portfolio_concentration > 40:
-        portfolio_health.append("⚠️ Forte concentration sectorielle - Envisager une diversification")
+        portfolio_health.append(f"⚠️ Forte concentration sectorielle ({portfolio_concentration:.1f}%) - Envisager une diversification vers d'autres secteurs")
+        portfolio_health.append("• Objectif: Réduire la concentration à moins de 30%")
+        portfolio_health.append("• Stratégie: Identifier des opportunités dans des secteurs sous-représentés")
     if diversification_score < 60:
-        portfolio_health.append("⚠️ Score de diversification faible - Ajouter des positions non corrélées")
+        portfolio_health.append(f"⚠️ Score de diversification faible ({diversification_score:.1f}/100) - Ajouter des positions non corrélées")
+        portfolio_health.append("• Objectif: Atteindre un score de diversification > 70")
+        portfolio_health.append("• Stratégie: Diversifier par secteur et par capitalisation")
     if volatility > 20:
-        portfolio_health.append("⚠️ Volatilité élevée - Considérer des positions défensives")
+        portfolio_health.append(f"⚠️ Volatilité élevée ({volatility:.1f}%) - Considérer des positions défensives")
+        portfolio_health.append("• Objectif: Réduire la volatilité à moins de 15%")
+        portfolio_health.append("• Stratégie: Augmenter la part des valeurs défensives")
     if beta > 1.2:
-        portfolio_health.append("⚠️ Beta élevé - Le portefeuille est plus volatil que le marché")
+        portfolio_health.append(f"⚠️ Beta élevé ({beta:.2f}) - Le portefeuille est plus volatil que le marché")
+        portfolio_health.append("• Objectif: Réduire le beta à moins de 1.0")
+        portfolio_health.append("• Stratégie: Ajouter des positions à faible beta")
     
     # Best and worst performers analysis
-    best_trend, best_size, best_action = generate_trading_signals(best_performer)
-    worst_trend, worst_size, worst_action = generate_trading_signals(worst_performer)
+    best_trend, best_size, best_size_detail, best_action, best_action_detail = generate_trading_signals(best_performer)
+    worst_trend, worst_size, worst_size_detail, worst_action, worst_action_detail = generate_trading_signals(worst_performer)
     
     # Create two columns for recommendations
     col1, col2 = st.columns(2)
@@ -1045,6 +1102,8 @@ if 'portfolio_metrics' in st.session_state:
                     <p>• Performance: +{best_performer['pnl_percentage']:.1f}%</p>
                     <p>• Poids: {best_performer['weight']:.1f}%</p>
                     <p>• Recommandation: {best_action}</p>
+                    <p>• Détail: {best_action_detail}</p>
+                    <p>• Gestion de position: {best_size_detail}</p>
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -1059,6 +1118,8 @@ if 'portfolio_metrics' in st.session_state:
                     <p>• Performance: {worst_performer['pnl_percentage']:.1f}%</p>
                     <p>• Poids: {worst_performer['weight']:.1f}%</p>
                     <p>• Recommandation: {worst_action}</p>
+                    <p>• Détail: {worst_action_detail}</p>
+                    <p>• Gestion de position: {worst_size_detail}</p>
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -1124,31 +1185,156 @@ if 'portfolio_metrics' in st.session_state:
         st.markdown(f"""
             <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
                 • Rééquilibrage sectoriel nécessaire - concentration actuelle: {portfolio_concentration:.1f}%
+                <br>• Objectif: Réduire à moins de 30%
+                <br>• Stratégie: Identifier des opportunités dans des secteurs sous-représentés
             </div>
         """, unsafe_allow_html=True)
     if diversification_score < 60:
         st.markdown(f"""
             <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
                 • Améliorer la diversification - score actuel: {diversification_score:.1f}/100
+                <br>• Objectif: Atteindre un score > 70
+                <br>• Stratégie: Diversifier par secteur et par capitalisation
             </div>
         """, unsafe_allow_html=True)
     if volatility > 20:
         st.markdown(f"""
             <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
                 • Considérer des positions défensives pour réduire la volatilité
+                <br>• Objectif: Réduire la volatilité à moins de 15%
+                <br>• Stratégie: Augmenter la part des valeurs défensives
             </div>
         """, unsafe_allow_html=True)
     if beta > 1.2:
         st.markdown(f"""
             <div style='background-color: {BLACK}; color: {YELLOW}; padding: 10px; border-radius: 5px; margin: 5px 0; border: 1px solid {YELLOW};'>
                 • Surveiller le beta élevé du portefeuille
+                <br>• Objectif: Réduire le beta à moins de 1.0
+                <br>• Stratégie: Ajouter des positions à faible beta
             </div>
         """, unsafe_allow_html=True)
 
-    # Signature
-    st.markdown("""
-        <div style='text-align: right; margin-top: 20px; font-style: italic; color: #00FF00; font-size: 12px;'>
-            ~@dogofallstreets
+    # Add compound interest calculator section
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-top: 30px; border: 2px solid {YELLOW};'>
+            <h3 style='color: {YELLOW}; margin-bottom: 15px;'>💰 Calculateur d'Intérêts Composés</h3>
+            <p style='color: {YELLOW}; margin-bottom: 20px;'>
+                Estimez vos rendements potentiels sur la Bourse de Casablanca basés sur la performance moyenne annuelle du MASI (10% par an).
+                <br><br>
+                <span style='color: {RED}; font-weight: bold;'>Note:</span> Les calculs sont basés sur le rendement annuel moyen historique du MASI (10%), qui représente la performance moyenne du marché marocain sur le long terme.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        initial_investment = st.number_input("Montant initial (MAD)", min_value=1000, value=10000, step=1000)
+    with col2:
+        years = st.number_input("Nombre d'années", min_value=1, max_value=30, value=5, step=1)
+
+    if st.button("Calculer les rendements"):
+        result = calculate_compound_interest(initial_investment, years)
+        
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; border: 1px solid {YELLOW}; margin-top: 20px;'>
+                <div style='color: {YELLOW};'>
+                    <h4>Résultats du Calcul</h4>
+                    <p>• Investissement initial: {result['initial_investment']:,.0f} MAD</p>
+                    <p>• Montant final après {years} ans: {result['final_amount']:,.0f} MAD</p>
+                    <p>• Gain total: {result['total_return']:,.0f} MAD</p>
+                    <p>• Rendement annuel moyen: {result['annual_return']}%</p>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Create a line chart showing the growth over time
+        years_data = list(range(years + 1))
+        amounts = [initial_investment * (1 + result['annual_return']/100) ** year for year in years_data]
+        
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=years_data,
+            y=amounts,
+            mode='lines+markers',
+            name='Valeur du Portefeuille',
+            line=dict(color=YELLOW, width=2),
+            marker=dict(color=YELLOW, size=8)
+        ))
+        
+        fig.update_layout(
+            title='Évolution de la Valeur du Portefeuille',
+            xaxis_title='Années',
+            yaxis_title='Valeur (MAD)',
+            plot_bgcolor=BLACK,
+            paper_bgcolor=BLACK,
+            font=dict(color=YELLOW),
+            xaxis=dict(gridcolor=RED),
+            yaxis=dict(gridcolor=RED)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Coaching Popup (moved to the end)
+    st.markdown(f"""
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-top: 30px; border: 2px solid {YELLOW};'>
+            <div style='text-align: center;'>
+                <h3 style='color: {YELLOW}; margin-bottom: 15px;'>🚀 Coaching Personnalisé Bourse de Casablanca</h3>
+                <p style='color: {YELLOW}; margin-bottom: 20px;'>
+                    Prêt à investir en Bourse de Casablanca ? Apprenez étape par étape avec un coach expérimenté.
+                    <br><br>
+                    <span style='color: {RED}; font-weight: bold;'>⚠️ Important:</span> Je ne travaille qu'avec des personnes sérieuses et motivées. Le coaching est un investissement unique qui vous donne accès à :
+                </p>
+                <div style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;'>
+                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='color: {YELLOW}; font-size: 14px;'>📊 Analyse Technique</div>
+                        <div style='color: {YELLOW}; font-size: 12px;'>Apprenez à lire les graphiques et les indicateurs</div>
+                    </div>
+                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='color: {YELLOW}; font-size: 14px;'>📈 Analyse Fondamentale</div>
+                        <div style='color: {YELLOW}; font-size: 12px;'>Comprenez les fondamentaux des entreprises</div>
+                    </div>
+                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='color: {YELLOW}; font-size: 14px;'>💰 Gestion de Portefeuille</div>
+                        <div style='color: {YELLOW}; font-size: 12px;'>Optimisez votre allocation d'actifs</div>
+                    </div>
+                </div>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 5px; border: 1px solid {YELLOW}; margin-bottom: 20px;'>
+                    <div style='color: {YELLOW}; font-size: 14px; font-weight: bold;'>🤖 Outils d'IA & Données de Formation</div>
+                    <div style='color: {YELLOW}; font-size: 12px; margin-top: 10px;'>
+                        • Accès à des outils d'IA pour une meilleure prise de décision financière<br>
+                        • Base de données de plus de 10 ans d'historique des actions marocaines<br>
+                        • Données disponibles au téléchargement pour l'entraînement de vos modèles d'IA<br>
+                        • Analyses prédictives et insights basés sur l'apprentissage automatique
+                    </div>
+                </div>
+                <div style='background-color: {BLACK}; padding: 15px; border-radius: 5px; border: 1px solid {YELLOW}; margin-bottom: 20px;'>
+                    <div style='color: {YELLOW}; font-size: 14px; font-weight: bold;'>🎯 Accès au Groupe Privé</div>
+                    <div style='color: {YELLOW}; font-size: 12px; margin-top: 10px;'>
+                        • Messages audio quotidiens sur la situation du marché<br>
+                        • Alertes d'opportunités en temps réel<br>
+                        • Réunions en ligne régulières<br>
+                        • Réponses à vos questions en privé<br>
+                        • Accès à une communauté d'investisseurs sérieux
+                    </div>
+                </div>
+                <div style='margin-top: 20px;'>
+                    <a href='https://wa.me/+212679186466' target='_blank' style='
+                        background-color: {YELLOW};
+                        color: {BLACK};
+                        padding: 12px 30px;
+                        border-radius: 5px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        display: inline-block;
+                        transition: all 0.3s ease;
+                    ' onmouseover="this.style.backgroundColor='#CCCC00'" onmouseout="this.style.backgroundColor='#FFFF00'">
+                        💬 Contactez-moi sur WhatsApp
+                    </a>
+                </div>
+                <p style='color: {YELLOW}; margin-top: 15px; font-size: 12px;'>
+                    Réponse garantie sous 24h | Coaching disponible en français et en arabe
+                </p>
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
