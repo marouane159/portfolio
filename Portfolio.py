@@ -228,7 +228,7 @@ BASE_STOCKS = [
     {"symbol": "PUM", "name": "PUMATECH", "sector": "Industrie"},
     {"symbol": "RCS", "name": "RÉSIDENCES DAR SAADA", "sector": "Immobilier"},
     {"symbol": "SAM", "name": "SAMIR", "sector": "Énergie"},
-    {"symbol": "SID", "name": "SIDI KACEM", "sector": "Agroalimentaire"},
+    {"symbol": "SID", "name": "SONASID", "sector": "Agroalimentaire"},
     {"symbol": "SNP", "name": "SNEP", "sector": "Industrie"},
     {"symbol": "SOT", "name": "SOTHEMA", "sector": "Pharma"},
     {"symbol": "SRM", "name": "REALISATIONS MECANIQUES", "sector": "Industrie"},
