@@ -915,26 +915,39 @@ if 'portfolio_metrics' in st.session_state:
         "symbol", "name", "sector", "current_price", 
         "investment", "value", "pnl", "pnl_percentage", "weight"
     ]]
-    detailed_data.columns = [
-        "Symbole", "Nom", "Secteur", "Prix Actuel", 
-        "Investissement", "Valeur", "P&L", "Performance %", "Poids %"
-    ]
     
-    # Format the DataFrame display
-    styled_table = detailed_data.style.format({
-        "Prix Actuel": "{:,.2f} MAD",
-        "Investissement": "{:,.2f} MAD",
-        "Valeur": "{:,.2f} MAD",
-        "P&L": "{:+,.2f} MAD",
-        "Performance %": "{:+.2f}%",
-        "Poids %": "{:.2f}%"
-    }).map(
-        lambda x: f"color: {RED}" if isinstance(x, str) and (x.startswith('+') or x.startswith('-')) else "",
-        subset=["P&L", "Performance %"]
-    )
+    # Create three columns for the table
+    col1, col2, col3 = st.columns(3)
     
-    st.dataframe(styled_table, use_container_width=True)
+    # Split the data into three parts
+    num_rows = len(detailed_data)
+    rows_per_col = (num_rows + 2) // 3  # Round up division
     
+    # Function to create a styled table for a subset of data
+    def create_styled_table(data_subset, column):
+        with column:
+            for _, row in data_subset.iterrows():
+                st.markdown(f"""
+                    <div style='background-color: {BLACK}; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid {YELLOW};'>
+                        <div style='color: {YELLOW};'>
+                            <h4 style='margin: 0 0 10px 0;'>{row['name']} ({row['symbol']})</h4>
+                            <p style='margin: 5px 0;'>• Secteur: {row['sector']}</p>
+                            <p style='margin: 5px 0;'>• Prix actuel: {row['current_price']:,.2f} MAD</p>
+                            <p style='margin: 5px 0;'>• Investissement: {row['investment']:,.2f} MAD</p>
+                            <p style='margin: 5px 0;'>• Valeur: {row['value']:,.2f} MAD</p>
+                            <p style='margin: 5px 0; color: {RED if row['pnl'] < 0 else YELLOW};'>
+                                • P&L: {row['pnl']:+,.2f} MAD ({row['pnl_percentage']:+.2f}%)
+                            </p>
+                            <p style='margin: 5px 0;'>• Poids: {row['weight']:.2f}%</p>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+    
+    # Display data in three columns
+    create_styled_table(detailed_data.iloc[:rows_per_col], col1)
+    create_styled_table(detailed_data.iloc[rows_per_col:2*rows_per_col], col2)
+    create_styled_table(detailed_data.iloc[2*rows_per_col:], col3)
+
     # Financial ratios
     st.markdown(f"""
         <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px;' class='responsive-padding'>
@@ -962,56 +975,65 @@ if 'portfolio_metrics' in st.session_state:
 
     # Win Rate and Drawdown Section
     st.markdown(f"""
-        <div style='background-color: #000000; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid #FFFF00;'>
-            <h3 style='color: #FFFF00;'>Performance et Risque</h3>
-            <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;' class='responsive-grid'>
-                <!-- Win Rate Card -->
-                <div style='background-color: #000000; padding: 20px; border-radius: 10px; border: 1px solid #FFFF00;'>
-                    <h4 style='color: #FFFF00; margin-bottom: 15px;'>📈 Taux de Réussite</h4>
-                    <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;'>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Taux de Réussite</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['win_rate']:.1f}%</div>
-                        </div>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Positions Gagnantes</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['winning_positions']}/{len(metrics['stock_performances'])}</div>
-                        </div>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Meilleure Position</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>+{metrics['performance']['best_position']:.1f}%</div>
-                        </div>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Performance Moyenne</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['avg_position_return']:.1f}%</div>
-                        </div>
+        <div style='background-color: {BLACK}; border-radius: 10px; padding: 20px; margin-bottom: 20px; border: 1px solid {YELLOW};'>
+            <h3 style='color: {YELLOW};'>Performance et Risque</h3>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Create two columns for the metrics
+    col1, col2 = st.columns(2)
+    
+    # Performance Metrics Card
+    with col1:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; padding: 20px; border-radius: 10px; border: 1px solid {YELLOW}; margin-bottom: 20px;'>
+                <h4 style='color: {YELLOW}; margin-bottom: 15px;'>📈 Performance</h4>
+                <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;'>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Taux de Réussite</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['performance']['win_rate']:.1f}%</div>
                     </div>
-                </div>
-                <!-- Risk Metrics Card -->
-                <div style='background-color: #000000; padding: 20px; border-radius: 10px; border: 1px solid #FFFF00;'>
-                    <h4 style='color: #FFFF00; margin-bottom: 15px;'>📊 Métriques de Risque</h4>
-                    <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;'>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Drawdown Maximum</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['ratios']['max_drawdown']}</div>
-                        </div>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Pire Position</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['performance']['worst_position']:.1f}%</div>
-                        </div>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Score de Diversification</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['health']['diversification_score']:.0f}/100</div>
-                        </div>
-                        <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid #FFFF00;'>
-                            <div style='font-size: 14px; color: #FFFF00;'>Ratio de Sharpe</div>
-                            <div style='font-size: 24px; font-weight: bold; color: #FFFF00;'>{metrics['ratios']['sharpe_ratio']:.2f}</div>
-                        </div>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Positions Gagnantes</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['performance']['winning_positions']}/{len(metrics['stock_performances'])}</div>
+                    </div>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Meilleure Position</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>+{metrics['performance']['best_position']:.1f}%</div>
+                    </div>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Performance Moyenne</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['performance']['avg_position_return']:.1f}%</div>
                     </div>
                 </div>
             </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    
+    # Risk Metrics Card
+    with col2:
+        st.markdown(f"""
+            <div style='background-color: {BLACK}; padding: 20px; border-radius: 10px; border: 1px solid {YELLOW}; margin-bottom: 20px;'>
+                <h4 style='color: {YELLOW}; margin-bottom: 15px;'>📊 Métriques de Risque</h4>
+                <div style='display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;'>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Drawdown Maximum</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['ratios']['max_drawdown']}</div>
+                    </div>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Pire Position</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['performance']['worst_position']:.1f}%</div>
+                    </div>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Score de Diversification</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['health']['diversification_score']:.0f}/100</div>
+                    </div>
+                    <div style='text-align: center; padding: 10px; border-radius: 5px; border: 1px solid {YELLOW};'>
+                        <div style='font-size: 14px; color: {YELLOW};'>Ratio de Sharpe</div>
+                        <div style='font-size: 24px; font-weight: bold; color: {YELLOW};'>{metrics['ratios']['sharpe_ratio']:.2f}</div>
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
     # Recommendations section
     st.markdown("""
